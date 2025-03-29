@@ -37,6 +37,7 @@ export function ChatRoom({
     null
   );
   const [joinAttempts, setJoinAttempts] = useState(0);
+  const [isMounted, setIsMounted] = useState(true); // Track component mount state
 
   // Load message history when component mounts
   useEffect(() => {
@@ -61,7 +62,10 @@ export function ChatRoom({
             return hasRequiredFields;
           });
 
-          setMessages(validMessages);
+          // Only update state if component is still mounted
+          if (isMounted) {
+            setMessages(validMessages);
+          }
         } else {
           console.warn(`Error fetching message history: ${response.status}`);
         }
@@ -73,6 +77,11 @@ export function ChatRoom({
     if (room && !room.startsWith("waiting-")) {
       fetchMessageHistory();
     }
+
+    // Cleanup function
+    return () => {
+      setIsMounted(false);
+    };
   }, [room]);
 
   useEffect(() => {
@@ -91,7 +100,8 @@ export function ChatRoom({
           socket &&
           isPrivate &&
           recipient &&
-          joinAttempts < 3
+          joinAttempts < 3 &&
+          isMounted
         ) {
           console.log(
             `Retrying private chat connection with ${
@@ -99,7 +109,7 @@ export function ChatRoom({
             }, attempt ${joinAttempts + 1}/3`
           );
           socket.emit("joinPrivateChat", {
-            currentUserId: socket.id, // Make sure we're passing the right ID
+            currentUserId: socket.id,
             targetUserId: recipient.id,
           });
           setJoinAttempts((prev) => prev + 1);
@@ -122,11 +132,19 @@ export function ChatRoom({
         clearTimeout(waitingTimeout);
       }
     };
-  }, [room, socket, isPrivate, recipient, isWaitingForRoom, joinAttempts]);
+  }, [
+    room,
+    socket,
+    isPrivate,
+    recipient,
+    isWaitingForRoom,
+    joinAttempts,
+    isMounted,
+  ]);
 
   useEffect(() => {
     // Skip if socket is not available yet
-    if (!socket) return;
+    if (!socket || !isMounted) return;
 
     // Reset messages when room changes
     setMessages([]);
@@ -136,22 +154,26 @@ export function ChatRoom({
       socket.emit("join", { username, room });
     } else if (isPrivate && recipient && room.startsWith("waiting-")) {
       console.log("Emitting joinPrivateChat event:", {
-        currentUserId: socket.id, // This might be the issue - we need the actual user ID, not socket ID
+        currentUserId: socket.id,
         targetUserId: recipient.id,
       });
       socket.emit("joinPrivateChat", {
-        currentUserId: socket.id, // Make sure we're passing the right ID
+        currentUserId: socket.id,
         targetUserId: recipient.id,
       });
     }
 
     // Listen for message history
     socket.on("messageHistory", (history: Message[]) => {
-      setMessages(history);
+      if (isMounted) {
+        setMessages(history);
+      }
     });
 
     // Listen for incoming messages
     socket.on("message", (newMessage: Message) => {
+      if (!isMounted) return;
+
       console.log("Received new message:", newMessage);
       if (newMessage && newMessage.user && newMessage.text) {
         // Add additional uniqueness to message ID
@@ -177,6 +199,8 @@ export function ChatRoom({
 
     // Listen for private messages - similar improvement
     socket.on("privateMessage", (newMessage: Message) => {
+      if (!isMounted) return;
+
       // Add additional uniqueness to message ID
       if (!newMessage.id) {
         newMessage.id = `private-${Date.now()}-${Math.random()
@@ -197,6 +221,8 @@ export function ChatRoom({
 
     // Listen for message reaction updates
     socket.on("messageReactionUpdated", ({ messageId, reactions }) => {
+      if (!isMounted) return;
+
       setMessages((prevMessages) =>
         prevMessages.map((msg) =>
           msg.id === messageId ? { ...msg, reactions } : msg
@@ -206,11 +232,15 @@ export function ChatRoom({
 
     // Listen for room users updates
     socket.on("roomUsers", ({ users }: { users: User[] }) => {
-      setUsers(users);
+      if (isMounted) {
+        setUsers(users);
+      }
     });
 
     // Listen for typing indicators
     socket.on("userTyping", (typingInfo: TypingIndicator) => {
+      if (!isMounted) return;
+
       if (typingInfo.isTyping) {
         setTypingUsers((prev) => {
           // Add user to typing list if not already there
@@ -232,6 +262,8 @@ export function ChatRoom({
     }
 
     socket?.on("privateChatJoined", ({ room: newRoom, withUser }) => {
+      if (!isMounted) return;
+
       console.log("Private chat joined:", newRoom, withUser);
       setIsWaitingForRoom(false);
 
@@ -252,17 +284,32 @@ export function ChatRoom({
       socket.off("userTyping");
       socket?.off("privateChatJoined");
     };
-  }, [socket, username, room, isPrivate, recipient]);
+  }, [socket, username, room, isPrivate, recipient, isMounted]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
-    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (isMounted && messageEndRef.current) {
+      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isMounted]);
+
+  // Clean up when component unmounts
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      if (waitingTimeout) {
+        clearTimeout(waitingTimeout);
+      }
+      setIsMounted(false);
+    };
+  }, []);
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (message.trim() && socket) {
+    if (message.trim() && socket && isMounted) {
       if (isPrivate && recipient) {
         socket.emit("sendPrivateMessage", {
           recipientId: recipient.id,
@@ -287,7 +334,7 @@ export function ChatRoom({
     setMessage(e.target.value);
 
     // Handle typing indicator
-    if (socket) {
+    if (socket && isMounted) {
       socket.emit("typing", { room, isTyping: true });
 
       // Clear previous timeout
@@ -297,13 +344,15 @@ export function ChatRoom({
 
       // Set timeout to clear typing indicator
       typingTimeoutRef.current = setTimeout(() => {
-        socket.emit("typing", { room, isTyping: false });
+        if (socket && isMounted) {
+          socket.emit("typing", { room, isTyping: false });
+        }
       }, 2000);
     }
   };
 
   const handleAddReaction = (messageId: string, emoji: string) => {
-    if (socket) {
+    if (socket && isMounted) {
       socket.emit("addReaction", { messageId, reaction: emoji });
     }
   };
@@ -359,6 +408,7 @@ export function ChatRoom({
     return Array.from(new Map(users.map((user) => [user.id, user])).values());
   }, [users]);
 
+  // Safe rendering with guards against removed nodes
   return (
     <div
       className={
@@ -387,7 +437,7 @@ export function ChatRoom({
         )}
 
         <div className="flex-grow overflow-hidden bg-background border rounded-lg">
-          <ScrollArea className="h-[calc(100vh-250px)]" ref={scrollAreaRef}>
+          <ScrollArea className="h-[calc(100vh-250px)]">
             <div className="space-y-4 p-4">
               {isWaitingForRoom ? (
                 <div className="text-center py-6 text-muted-foreground">
@@ -533,9 +583,7 @@ export function ChatRoom({
       {!isPrivate && (
         <div className="col-span-1 h-full">
           <div className="mb-4">
-            <h2 className="text-xl font-bold">
-              Online Users ({uniqueUsers.length})
-            </h2>
+            <h2 className="text-xl font-bold">Online Users</h2>
           </div>
           <div className="bg-background border rounded-lg overflow-hidden h-[calc(100vh-150px)]">
             <ScrollArea className="h-full">

@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChatRoom } from "@/components/chat/ChatRoom";
 import { UserList } from "@/components/chat/UserList";
 import { ChannelItem } from "@/components/chat/ChannelItem";
+import { VoiceChannel } from "@/components/chat/VoiceChannel";
 import { useUser } from "@/context/UserContext";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useSocket } from "@/context/SocketContext";
@@ -325,6 +326,14 @@ export default function ChatPage() {
                     onClick={() => {}}
                   />
                 )}
+
+                {/* Voice Channels Section */}
+                <div className="text-sm text-muted-foreground uppercase px-2 py-1 mt-4">
+                  Voice Channels
+                </div>
+                <VoiceChannel name="General Voice" channelId="voice-general" />
+                <VoiceChannel name="Gaming" channelId="voice-gaming" />
+                <VoiceChannel name="Music" channelId="voice-music" />
 
                 <Button
                   variant="ghost"

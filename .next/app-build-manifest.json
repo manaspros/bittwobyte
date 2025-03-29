@@ -1,9 +1,57 @@
 {
   "pages": {
+    "/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--ccee2e.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-slot_dist_index_mjs-_app-pages-browser-93e0b9.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-dialog_dist_index_mjs.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_lucide-react_dist_esm_icons_bug_js-_app-pages-browser-28949d.js",
+      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
+    ],
+    "/chat/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--ccee2e.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-slot_dist_index_mjs-_app-pages-browser-93e0b9.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-dialog_dist_index_mjs.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_lucide-react_dist_esm_icons_monitor-up_js-_app-pages--d04d92.js",
+      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
+      "static/chunks/_app-pages-browser_components_ui_avatar_tsx-_app-pages-browser_components_ui_button_tsx-_app--699f96.js",
+      "static/chunks/app/chat/page.js"
+    ],
     "/api/users/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/users/route.js"
+    ],
+    "/username-setup/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--ccee2e.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-slot_dist_index_mjs-_app-pages-browser-93e0b9.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-dialog_dist_index_mjs.js",
+      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
+      "static/chunks/_app-pages-browser_components_ui_avatar_tsx-_app-pages-browser_components_ui_button_tsx-_app--699f96.js",
+      "static/chunks/app/username-setup/page.js"
+    ],
+    "/video-call/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--ccee2e.js",
+      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
+      "static/chunks/app/video-call/layout.js"
+    ],
+    "/video-call/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--ccee2e.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-slot_dist_index_mjs-_app-pages-browser-93e0b9.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_agora-access-token_index_js-_app-pages-browser_node_m-dcfb81.js",
+      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
+      "static/chunks/app/video-call/page.js"
     ]
   }
 }

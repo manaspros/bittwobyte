@@ -580,6 +580,13 @@ const rooms = {
   general: { users: [] }, // Default public room
 };
 
+// Store active voice channels and their participants
+const voiceChannels = {
+  "voice-general": { participants: [] },
+  "voice-gaming": { participants: [] },
+  "voice-music": { participants: [] },
+};
+
 // Helper function to get private room name
 const getPrivateRoomName = (user1, user2) => {
   return user1 < user2
@@ -1423,6 +1430,110 @@ io.on("connection", (socket) => {
     }
 
     console.log(`User disconnected: ${socket.id}`);
+  });
+
+  // Handle joining a voice channel
+  socket.on("joinVoiceChannel", ({ channelId, userId, username }) => {
+    console.log(`User ${username} joining voice channel: ${channelId}`);
+
+    // Create channel if it doesn't exist
+    if (!voiceChannels[channelId]) {
+      voiceChannels[channelId] = { participants: [] };
+    }
+
+    // Add user to channel participants if not already there
+    const isAlreadyInChannel = voiceChannels[channelId].participants.some(
+      (p) => p.id === userId
+    );
+
+    if (!isAlreadyInChannel) {
+      voiceChannels[channelId].participants.push({
+        id: userId,
+        username,
+        socketId: socket.id,
+      });
+    }
+
+    // Join the socket room for this voice channel
+    socket.join(`voice-${channelId}`);
+
+    // Broadcast updated participants list
+    io.emit("voiceChannelParticipants", {
+      channelId,
+      participants: voiceChannels[channelId].participants,
+    });
+  });
+
+  // Handle leaving a voice channel
+  socket.on("leaveVoiceChannel", ({ channelId, userId }) => {
+    console.log(`User ${userId} leaving voice channel: ${channelId}`);
+
+    // Remove user from channel participants
+    if (voiceChannels[channelId]) {
+      voiceChannels[channelId].participants = voiceChannels[
+        channelId
+      ].participants.filter((p) => p.id !== userId);
+
+      // Leave the socket room
+      socket.leave(`voice-${channelId}`);
+
+      // Broadcast updated participants list
+      io.emit("voiceChannelParticipants", {
+        channelId,
+        participants: voiceChannels[channelId].participants,
+      });
+    }
+  });
+
+  // Handle request for voice channel participants
+  socket.on("getVoiceChannelParticipants", ({ channelId }) => {
+    const participants = voiceChannels[channelId]?.participants || [];
+    socket.emit("voiceChannelParticipants", { channelId, participants });
+  });
+
+  // WebRTC signaling for video calls
+  socket.on("joinVideoCall", ({ room, userId }) => {
+    socket.join(room);
+
+    // Notify others in the room
+    socket.to(room).emit("userJoinedVideoCall", { userId });
+
+    // Send list of participants to the new user
+    const socketsInRoom = io.sockets.adapter.rooms.get(room);
+    const participants = [];
+
+    if (socketsInRoom) {
+      for (const socketId of socketsInRoom) {
+        if (socketId !== socket.id) {
+          const participant = Object.values(users).find(
+            (u) => u.socketId === socketId
+          );
+          if (participant) {
+            participants.push(participant.id);
+          }
+        }
+      }
+    }
+
+    socket.emit("videoCallParticipants", { participants });
+  });
+
+  socket.on("leaveVideoCall", ({ room, userId }) => {
+    socket.leave(room);
+    socket.to(room).emit("userLeftVideoCall", { userId });
+  });
+
+  socket.on("videoCallSignal", (data) => {
+    const { to } = data;
+
+    // Find the socket ID for the target user
+    const targetUser = Object.values(authenticatedUsers).find(
+      (u) => u.id === to
+    );
+
+    if (targetUser && targetUser.socketId) {
+      io.to(targetUser.socketId).emit("videoCallSignal", data);
+    }
   });
 });
 

@@ -139,6 +139,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
           );
         });
 
+        // Voice channel events
+        socketInstance.on("voiceChannelParticipants", (data) => {
+          addDebugInfo(`Voice channel update: ${JSON.stringify(data)}`);
+        });
+
         // Save socket instance to state
         setSocket(socketInstance);
 
@@ -146,6 +151,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
         return () => {
           addDebugInfo("Cleaning up socket connection");
           socketInstance.disconnect();
+          socketInstance.off("voiceChannelParticipants");
         };
       } catch (error) {
         console.error("Error setting up socket:", error);
