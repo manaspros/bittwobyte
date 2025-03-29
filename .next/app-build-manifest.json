@@ -16,15 +16,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/feed/page.js"
     ],
+    "/chat/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/chat/page.js"
+    ],
     "/username-setup/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/username-setup/page.js"
     ],
-    "/chat/page": [
+    "/api/users/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/chat/page.js"
+      "static/chunks/app/api/users/route.js"
     ]
   }
 }

@@ -4,11 +4,13 @@ import { AuthProvider } from "@/components/auth/auth-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SocketProvider } from "@/context/SocketContext";
 import { UserProvider } from "@/context/UserContext";
+import { ConnectionStatusBar } from "@/components/ConnectionStatusBar";
+import { DebugPanel } from "@/components/DebugPanel";
+import { Navbar } from "@/components/Navbar";
 
 export const metadata: Metadata = {
-  title: "v0 App",
-  description: "Created with v0",
-  generator: "v0.dev",
+  title: "Bit2Byte Chat",
+  description: "Real-time chat application with Next.js and Socket.io",
 };
 
 export default function RootLayout({
@@ -22,7 +24,14 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <SocketProvider>
-              <UserProvider>{children}</UserProvider>
+              <UserProvider>
+                <div className="flex min-h-screen flex-col">
+                  <Navbar />
+                  <main className="flex-1">{children}</main>
+                </div>
+                <ConnectionStatusBar />
+                <DebugPanel />
+              </UserProvider>
             </SocketProvider>
           </AuthProvider>
         </ThemeProvider>

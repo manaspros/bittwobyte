@@ -4,9 +4,11 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { FaUser, FaUserCheck } from "react-icons/fa";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
-  const { isAuthenticated, login, logout } = useAuth();
+  const { isAuthenticated, isLoading, login, logout, user } = useAuth();
   // Add a client-side only state to prevent hydration mismatch
   const [isClient, setIsClient] = useState(false);
 
@@ -14,6 +16,15 @@ export default function Home() {
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  // Add a new effect to cache the Auth0 user for persistent sessions
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Store the Auth0 user in localStorage for persistent sessions
+      // This helps with reconnections and page refreshes
+      localStorage.setItem("auth_user", JSON.stringify(user));
+    }
+  }, [isAuthenticated, user]);
 
   // Don't render authentication-dependent UI until client-side
   if (!isClient) {
@@ -40,17 +51,20 @@ export default function Home() {
           A real-time chat application built with Next.js and Socket.io
         </p>
 
-        <div className="flex flex-col space-y-4 pt-4">
-          {isAuthenticated ? (
+        <div className="flex flex-col space-y-4 pt-8">
+          {isLoading ? (
+            <div className="flex flex-col items-center space-y-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">
+                Checking authentication status...
+              </p>
+            </div>
+          ) : isAuthenticated ? (
             <>
-              <Link href="/feed">
-                <Button className="w-full" size="lg">
-                  Go to Feed
-                </Button>
-              </Link>
               <Link href="/chat">
-                <Button className="w-full" variant="outline" size="lg">
-                  Public Chat Rooms
+                <Button className="w-full" size="lg">
+                  <FaUserCheck className="mr-2" />
+                  Go to Chat Rooms
                 </Button>
               </Link>
               <Button
@@ -62,9 +76,31 @@ export default function Home() {
               </Button>
             </>
           ) : (
-            <Button onClick={() => login()} className="w-full" size="lg">
-              Login to Get Started
-            </Button>
+            <div className="space-y-4">
+              <Button
+                onClick={() => login()}
+                className="w-full"
+                size="lg"
+                variant="default"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Connecting to Auth0...
+                  </>
+                ) : (
+                  <>
+                    <FaUser className="mr-2" />
+                    Login with Auth0
+                  </>
+                )}
+              </Button>
+              <div className="text-sm text-muted-foreground">
+                Secure authentication powered by Auth0. Sign in with your email,
+                Google, or other social accounts.
+              </div>
+            </div>
           )}
         </div>
       </div>

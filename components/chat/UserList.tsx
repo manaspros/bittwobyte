@@ -3,10 +3,20 @@
 import React from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface User {
   id: string;
   username: string;
+  isOnline?: boolean;
+  lastSeen?: string;
 }
 
 interface UserListProps {
@@ -17,6 +27,11 @@ interface UserListProps {
 export function UserList({ users, onSelectUser }: UserListProps) {
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();
+  };
+
+  const formatLastSeen = (date: string) => {
+    if (!date) return "Unknown";
+    return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
 
   if (users.length === 0) {
@@ -39,9 +54,34 @@ export function UserList({ users, onSelectUser }: UserListProps) {
               <Avatar className="h-10 w-10">
                 <AvatarFallback>{getInitials(user.username)}</AvatarFallback>
               </Avatar>
-              <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={cn(
+                        "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
+                        user.isOnline ? "bg-green-500" : "bg-gray-400"
+                      )}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {user.isOnline
+                      ? "Online"
+                      : user.lastSeen
+                      ? `Last seen ${formatLastSeen(user.lastSeen)}`
+                      : "Offline"}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
-            <span className="font-medium">{user.username}</span>
+            <div>
+              <div className="font-medium">{user.username}</div>
+              {!user.isOnline && user.lastSeen && (
+                <div className="text-xs text-muted-foreground">
+                  Last seen {formatLastSeen(user.lastSeen)}
+                </div>
+              )}
+            </div>
           </div>
           <Button size="sm" onClick={() => onSelectUser(user)}>
             Message

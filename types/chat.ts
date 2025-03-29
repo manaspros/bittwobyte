@@ -1,6 +1,8 @@
 export interface User {
   id: string;
   username: string;
+  isOnline?: boolean;
+  lastSeen?: string;
 }
 
 export interface Message {
@@ -12,6 +14,9 @@ export interface Message {
   recipientId?: string;
   timestamp: string;
   isPrivate?: boolean;
+  reactions?: {
+    [emoji: string]: string[]; // Emoji -> array of user IDs
+  };
 }
 
 export interface Room {

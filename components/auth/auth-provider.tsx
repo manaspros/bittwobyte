@@ -1,27 +1,21 @@
 "use client";
 
+import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
 import {
   createContext,
   useContext,
+  ReactNode,
   useState,
   useEffect,
-  ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-
-// Define the user type
-interface AuthUser {
-  sub: string; // Auth0 user ID
-  name?: string;
-  email?: string;
-  picture?: string;
-}
+import { Loader2 } from "lucide-react";
 
 // Define the auth context shape
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  user: AuthUser | null;
+  user: any; // Auth0 user profile
   login: () => void;
   logout: () => void;
 }
@@ -38,80 +32,77 @@ const AuthContext = createContext<AuthContextType>({
 // Export the useAuth hook
 export const useAuth = () => useContext(AuthContext);
 
-// Create the auth provider component
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState<AuthUser | null>(null);
+// Auth Context Provider that uses Auth0
+function AuthContextProvider({ children }: { children: ReactNode }) {
+  const {
+    isAuthenticated,
+    isLoading,
+    user,
+    loginWithRedirect,
+    logout: auth0Logout,
+  } = useAuth0();
   const router = useRouter();
+  const [redirectInProgress, setRedirectInProgress] = useState(false);
 
-  // Simulate checking auth status on mount
+  // Log auth state changes to help with debugging
   useEffect(() => {
-    // Make sure this only runs on the client
-    if (typeof window === "undefined") return;
+    console.log("Auth state updated:", {
+      isAuthenticated,
+      isLoading,
+      hasUser: !!user,
+      userId: user?.sub,
+    });
+  }, [isAuthenticated, isLoading, user]);
 
-    const checkAuthStatus = () => {
-      // Check if there's a user in localStorage
-      const storedUser = localStorage.getItem("auth_user");
-
-      if (storedUser) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-          setIsAuthenticated(true);
-        } catch (e) {
-          // Invalid stored user, clear it
-          localStorage.removeItem("auth_user");
-          setUser(null);
-          setIsAuthenticated(false);
-        }
+  // When auth state changes and user is available, store in localStorage
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      try {
+        localStorage.setItem("auth_user", JSON.stringify(user));
+      } catch (error) {
+        console.error("Error storing auth user in localStorage:", error);
       }
+    }
+  }, [isAuthenticated, user]);
 
-      setIsLoading(false);
-    };
-
-    checkAuthStatus();
-  }, []);
-
-  // Mock login function
+  // Auth0 login wrapper
   const login = () => {
-    // Create a mock user with a stable ID
-    const mockUser: AuthUser = {
-      sub: `user_${Math.floor(Date.now() / 1000)}`, // Use a timestamp for stability
-      name: "Demo User",
-      email: "demo@example.com",
-      picture: "https://via.placeholder.com/150",
-    };
-
-    // Store the user in localStorage
-    localStorage.setItem("auth_user", JSON.stringify(mockUser));
-
-    // Update state
-    setUser(mockUser);
-    setIsAuthenticated(true);
-
-    // Redirect to feed or username setup
-    router.push("/feed");
+    setRedirectInProgress(true);
+    try {
+      console.log("Initiating Auth0 login redirect...");
+      loginWithRedirect({
+        appState: { returnTo: "/username-setup" }, // Explicitly set redirect to username-setup
+      }).catch((error) => {
+        console.error("Login redirect error:", error);
+        setRedirectInProgress(false);
+      });
+    } catch (error) {
+      console.error("Error during login:", error);
+      setRedirectInProgress(false);
+    }
   };
 
-  // Mock logout function
+  // Auth0 logout wrapper
   const logout = () => {
-    // Remove user from localStorage
-    localStorage.removeItem("auth_user");
+    // Clear any saved username data for this user
+    if (user && user.sub) {
+      localStorage.removeItem(`username_${user.sub}`);
+    }
 
-    // Update state
-    setUser(null);
-    setIsAuthenticated(false);
-
-    // Redirect to home
-    router.push("/");
+    // Log out from Auth0
+    auth0Logout({
+      logoutParams: {
+        returnTo: window.location.origin,
+      },
+    });
   };
 
   return (
     <AuthContext.Provider
       value={{
         isAuthenticated,
-        isLoading,
+        // Treat as loading if Auth0 is loading OR if a redirect is in progress
+        isLoading: isLoading || redirectInProgress,
         user,
         login,
         logout,
@@ -119,5 +110,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     >
       {children}
     </AuthContext.Provider>
+  );
+}
+
+// Main Auth Provider that wraps the application
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isClient, setIsClient] = useState(false);
+
+  // Set client-side state once component mounts
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Auth0 config
+  const auth0Domain =
+    process.env.NEXT_PUBLIC_AUTH0_DOMAIN || "your-auth0-domain.auth0.com";
+  const auth0ClientId =
+    process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || "your-auth0-client-id";
+  const redirectUri =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : "http://localhost:3000";
+
+  // Show loading spinner for SSR
+  if (!isClient) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  return (
+    <Auth0Provider
+      domain={auth0Domain}
+      clientId={auth0ClientId}
+      authorizationParams={{
+        redirect_uri: redirectUri,
+      }}
+      // Add cacheLocation to improve persistence across page reloads
+      cacheLocation="localstorage"
+      useRefreshTokens={true}
+      // Add a session check interval to keep the session alive
+      sessionCheckExpiryDays={1}
+    >
+      <AuthContextProvider>{children}</AuthContextProvider>
+    </Auth0Provider>
   );
 }
