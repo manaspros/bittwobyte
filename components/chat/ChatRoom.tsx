@@ -2,26 +2,14 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSocket } from "@/context/SocketContext";
-import { Message, User, TypingIndicator } from "@/types/chat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { formatDistanceToNow, format, isToday, isYesterday } from "date-fns";
 import { cn } from "@/lib/utils";
-import { format, formatDistanceToNow, isToday, isYesterday } from "date-fns";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { EmojiPicker } from "@/components/chat/EmojiPicker";
+import { Message, User, TypingIndicator } from "@/types/chat";
 
 interface ChatRoomProps {
   username: string;
@@ -341,6 +329,11 @@ export function ChatRoom({
     return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
 
+  const formatDateSeparator = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return format(date, "MMMM d, yyyy");
+  };
+
   // Renders message reactions if any
   const renderReactions = (msg: Message) => {
     if (!msg.reactions || Object.keys(msg.reactions).length === 0) return null;
@@ -361,6 +354,11 @@ export function ChatRoom({
     );
   };
 
+  // Remove duplicate users by ID
+  const uniqueUsers = React.useMemo(() => {
+    return Array.from(new Map(users.map((user) => [user.id, user])).values());
+  }, [users]);
+
   return (
     <div
       className={
@@ -376,13 +374,14 @@ export function ChatRoom({
         }
       >
         {!isPrivate && (
-          <div className="mb-4 flex items-center gap-2">
+          <div className="mb-4 flex items-center gap-2 p-2 border-b">
             <span className="text-xl font-bold flex items-center gap-2">
               <span className="text-muted-foreground">#</span>
               {room}
             </span>
             <span className="text-sm text-muted-foreground">
-              {users.length} {users.length === 1 ? "member" : "members"}
+              {uniqueUsers.length}{" "}
+              {uniqueUsers.length === 1 ? "member" : "members"}
             </span>
           </div>
         )}
@@ -416,101 +415,79 @@ export function ChatRoom({
                       new Date(messages[index - 1].timestamp).toDateString() !==
                         new Date(msg.timestamp).toDateString();
 
+                    // Check if message is from same user as previous message (for grouping)
+                    const isConsecutiveMessage =
+                      index > 0 &&
+                      messages[index - 1].user === msg.user &&
+                      !isSystem &&
+                      new Date(msg.timestamp).getTime() -
+                        new Date(messages[index - 1].timestamp).getTime() <
+                        5 * 60 * 1000; // 5 minutes
+
                     return (
                       <React.Fragment key={messageKey}>
                         {showDateSeparator && (
                           <div className="flex items-center justify-center my-4">
-                            <div className="bg-muted px-3 py-1 rounded-full text-xs">
-                              {format(new Date(msg.timestamp), "MMMM d, yyyy")}
-                            </div>
+                            <div className="bg-muted h-px flex-grow"></div>
+                            <span className="px-2 text-xs text-muted-foreground">
+                              {formatDateSeparator(msg.timestamp)}
+                            </span>
+                            <div className="bg-muted h-px flex-grow"></div>
                           </div>
                         )}
 
                         <div
                           className={cn(
-                            "relative group",
-                            isSystem && "flex justify-center",
-                            !isSystem && "max-w-[80%]",
-                            isCurrentUser && !isSystem && "ml-auto"
+                            "group",
+                            isSystem
+                              ? "flex justify-center my-2"
+                              : "hover:bg-muted/50 py-1 px-2 -mx-2 rounded",
+                            isConsecutiveMessage ? "pt-0 mt-0" : "pt-2 mt-1"
                           )}
                         >
-                          <div
-                            className={cn(
-                              "flex items-start gap-2 p-3 rounded-lg",
-                              isCurrentUser && !isSystem
-                                ? "flex-row-reverse bg-primary/10"
-                                : isSystem
-                                ? "justify-center text-center italic text-muted-foreground bg-transparent"
-                                : "bg-muted",
-                              msg.isPrivate &&
-                                "border border-yellow-500/50 bg-yellow-500/10"
-                            )}
-                          >
-                            {!isSystem && (
-                              <Avatar className="h-8 w-8 mt-0.5">
-                                <AvatarFallback>
-                                  {getInitials(msg.user)}
-                                </AvatarFallback>
-                              </Avatar>
-                            )}
-
-                            <div className="flex flex-col">
-                              {!isSystem && !isCurrentUser && (
-                                <span className="text-xs font-medium text-muted-foreground mb-1">
-                                  {msg.user}
-                                </span>
-                              )}
-
-                              <div className="flex flex-col">
-                                <p className={isSystem ? "text-sm" : ""}>
-                                  {msg.isPrivate && !isPrivate && (
-                                    <span className="text-xs mr-1 text-yellow-600">
-                                      [Private]{" "}
-                                    </span>
-                                  )}
-                                  {msg.text}
-                                </p>
-
-                                {renderReactions(msg)}
-
-                                <span className="text-xs text-muted-foreground mt-1">
-                                  {formatMessageTime(msg.timestamp)}
-                                </span>
-                              </div>
+                          {isSystem ? (
+                            <div className="px-4 py-1 bg-muted/30 rounded-md text-sm text-muted-foreground">
+                              {msg.text}
                             </div>
-                          </div>
-
-                          {/* Emoji reaction button (not for system messages) */}
-                          {!isSystem && (
-                            <div
-                              className={cn(
-                                "absolute top-0 opacity-0 group-hover:opacity-100 transition-opacity",
-                                isCurrentUser
-                                  ? "left-0 -translate-x-full -ml-2"
-                                  : "right-0 translate-x-full mr-2"
+                          ) : (
+                            <div className="flex gap-x-3">
+                              {/* Only show avatar for the first message in a group */}
+                              {!isConsecutiveMessage && (
+                                <Avatar className="h-10 w-10 mt-0.5 flex-shrink-0">
+                                  <AvatarFallback>
+                                    {getInitials(msg.user)}
+                                  </AvatarFallback>
+                                </Avatar>
                               )}
-                            >
-                              <Popover>
-                                <PopoverTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 rounded-full bg-muted/50 hover:bg-muted"
-                                  >
-                                    <span className="text-xs">😀</span>
-                                  </Button>
-                                </PopoverTrigger>
-                                <PopoverContent
-                                  className="w-full p-1"
-                                  align="end"
-                                >
-                                  <EmojiPicker
-                                    onEmojiSelect={(emoji) =>
-                                      msg.id && handleAddReaction(msg.id, emoji)
-                                    }
-                                  />
-                                </PopoverContent>
-                              </Popover>
+                              <div
+                                className={cn(
+                                  "flex-1",
+                                  isConsecutiveMessage && "pl-[3.25rem]"
+                                )}
+                              >
+                                {/* Only show username for the first message in a group */}
+                                {!isConsecutiveMessage && (
+                                  <div className="flex gap-2 items-baseline">
+                                    <span className="font-medium">
+                                      {msg.user}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {formatMessageTime(msg.timestamp)}
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="text-sm mt-1">{msg.text}</div>
+                                {renderReactions(msg)}
+                              </div>
+
+                              {/* Reaction button - only show on hover */}
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity self-center">
+                                <EmojiPicker
+                                  onEmojiSelect={(emoji) =>
+                                    handleAddReaction(msg.id!, emoji)
+                                  }
+                                />
+                              </div>
                             </div>
                           )}
                         </div>
@@ -556,18 +533,20 @@ export function ChatRoom({
       {!isPrivate && (
         <div className="col-span-1 h-full">
           <div className="mb-4">
-            <h2 className="text-xl font-bold">Online Users ({users.length})</h2>
+            <h2 className="text-xl font-bold">
+              Online Users ({uniqueUsers.length})
+            </h2>
           </div>
           <div className="bg-background border rounded-lg overflow-hidden h-[calc(100vh-150px)]">
             <ScrollArea className="h-full">
               <div className="p-4 space-y-2">
-                {users.length === 0 ? (
+                {uniqueUsers.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground">
                     No users in this room
                   </div>
                 ) : (
                   <>
-                    {users.map((user) => (
+                    {uniqueUsers.map((user) => (
                       <div
                         key={user.id}
                         className="flex items-center justify-between p-2 rounded-md hover:bg-muted"
@@ -581,14 +560,7 @@ export function ChatRoom({
                             </Avatar>
                             <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-green-500" />
                           </div>
-                          <span
-                            className={
-                              user.username === username ? "font-bold" : ""
-                            }
-                          >
-                            {user.username}{" "}
-                            {user.username === username && "(You)"}
-                          </span>
+                          <span className="font-medium">{user.username}</span>
                         </div>
                       </div>
                     ))}

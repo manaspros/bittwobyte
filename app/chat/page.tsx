@@ -22,6 +22,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChatRoom } from "@/components/chat/ChatRoom";
 import { UserList } from "@/components/chat/UserList";
+import { ChannelItem } from "@/components/chat/ChannelItem";
 import { useUser } from "@/context/UserContext";
 import { useAuth } from "@/components/auth/auth-provider";
 import { useSocket } from "@/context/SocketContext";
@@ -71,10 +72,17 @@ export default function ChatPage() {
     if (!socket || !contextUser) return;
 
     socket.on("userList", (users: User[]) => {
-      // Filter out current user
-      const filteredUsers = users.filter((u) => u.id !== contextUser.id);
-      console.log(`Received updated user list: ${filteredUsers.length} users`);
-      setOnlineUsers(filteredUsers);
+      // Filter out current user and remove duplicates by using Map
+      const uniqueUsers = Array.from(
+        new Map(
+          users
+            .filter((u) => u.id !== contextUser.id)
+            .map((user) => [user.id, user])
+        ).values()
+      );
+
+      console.log(`Received updated user list: ${uniqueUsers.length} users`);
+      setOnlineUsers(uniqueUsers);
     });
 
     socket.on("privateChatJoined", ({ room, withUser }) => {
@@ -105,7 +113,15 @@ export default function ChatPage() {
       setIsLoadingUsers(true);
       const users = await fetchAllUsers();
       if (Array.isArray(users)) {
-        setAllUsers(users.filter((u) => u.id !== contextUser.id));
+        // Remove duplicates and filter out current user
+        const uniqueUsers = Array.from(
+          new Map(
+            users
+              .filter((u) => u.id !== contextUser.id)
+              .map((user) => [user.id, user])
+          ).values()
+        );
+        setAllUsers(uniqueUsers);
       } else {
         console.error("Unexpected response format from fetchAllUsers:", users);
         setAllUsers([]);
@@ -162,9 +178,9 @@ export default function ChatPage() {
       <div className="container flex justify-center items-center min-h-[calc(100vh-80px)]">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Join a Chat Room</CardTitle>
+            <CardTitle>Join a Chat Channel</CardTitle>
             <CardDescription>
-              Enter your username and select a room to start chatting
+              Select a channel or create your own
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleJoinRoom}>
@@ -186,32 +202,51 @@ export default function ChatPage() {
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Label>Room</Label>
-                {!showCustomRoom ? (
-                  <Select value={room} onValueChange={setRoom}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a room" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="general">General</SelectItem>
-                      <SelectItem value="technology">Technology</SelectItem>
-                      <SelectItem value="random">Random</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Input
-                    placeholder="Enter custom room name"
-                    value={customRoom}
-                    onChange={(e) => setCustomRoom(e.target.value)}
-                    required
-                  />
-                )}
+              <div className="space-y-3">
+                <Label>Channels</Label>
+                <div className="space-y-1 max-h-64 overflow-y-auto pr-1 border rounded-md p-2">
+                  {/* Default channels with Discord-like styling */}
+                  {!showCustomRoom && (
+                    <>
+                      <ChannelItem
+                        name="general"
+                        isActive={room === "general"}
+                        onClick={() => setRoom("general")}
+                      />
+                      <ChannelItem
+                        name="technology"
+                        isActive={room === "technology"}
+                        onClick={() => setRoom("technology")}
+                      />
+                      <ChannelItem
+                        name="random"
+                        isActive={room === "random"}
+                        onClick={() => setRoom("random")}
+                      />
+                    </>
+                  )}
+
+                  {/* Custom channel input */}
+                  {showCustomRoom && (
+                    <div className="pt-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">#</span>
+                        <Input
+                          placeholder="Enter custom channel name"
+                          value={customRoom}
+                          onChange={(e) => setCustomRoom(e.target.value)}
+                          required
+                          className="flex-1"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <Button
                   type="button"
                   variant="link"
-                  className="px-0"
+                  className="px-0 text-xs"
                   onClick={() => {
                     setShowCustomRoom(!showCustomRoom);
                     if (showCustomRoom) {
@@ -222,15 +257,15 @@ export default function ChatPage() {
                   }}
                 >
                   {showCustomRoom
-                    ? "Use a predefined room"
-                    : "Create a custom room"}
+                    ? "Use a predefined channel"
+                    : "Create a custom channel"}
                 </Button>
               </div>
             </CardContent>
 
             <CardFooter>
               <Button type="submit" className="w-full">
-                Join Room
+                Join Channel
               </Button>
             </CardFooter>
           </form>
@@ -241,24 +276,84 @@ export default function ChatPage() {
 
   return (
     <div className="container py-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Welcome, {username}</h1>
-        <Button variant="outline" onClick={handleLeaveRoom}>
-          Change Room
-        </Button>
-      </div>
-
       <Tabs value={activeTab} onValueChange={(tab) => setActiveTab(tab as any)}>
         <TabsList className="mb-4">
-          <TabsTrigger value="public">Public Chat</TabsTrigger>
-          <TabsTrigger value="private">Private Messages</TabsTrigger>
+          <TabsTrigger value="public">Channels</TabsTrigger>
+          <TabsTrigger value="private">Direct Messages</TabsTrigger>
         </TabsList>
 
         <TabsContent value="public" className="mt-0">
-          <ChatRoom
-            username={username}
-            room={showCustomRoom ? customRoom : room}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            {/* Channel Sidebar - Discord-like */}
+            <div className="hidden lg:block lg:col-span-1 bg-muted/30 rounded-lg h-[calc(100vh-200px)] overflow-hidden">
+              <div className="p-3 border-b">
+                <h3 className="font-semibold">Channels</h3>
+              </div>
+              <div className="p-2 space-y-1">
+                <div className="text-sm text-muted-foreground uppercase px-2 py-1">
+                  Text Channels
+                </div>
+                <ChannelItem
+                  name="general"
+                  isActive={!showCustomRoom && room === "general"}
+                  onClick={() => {
+                    setRoom("general");
+                    setShowCustomRoom(false);
+                  }}
+                />
+                <ChannelItem
+                  name="technology"
+                  isActive={!showCustomRoom && room === "technology"}
+                  onClick={() => {
+                    setRoom("technology");
+                    setShowCustomRoom(false);
+                  }}
+                />
+                <ChannelItem
+                  name="random"
+                  isActive={!showCustomRoom && room === "random"}
+                  onClick={() => {
+                    setRoom("random");
+                    setShowCustomRoom(false);
+                  }}
+                />
+
+                {showCustomRoom && (
+                  <ChannelItem
+                    name={customRoom}
+                    isActive={true}
+                    onClick={() => {}}
+                  />
+                )}
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start text-muted-foreground hover:text-foreground mt-2"
+                  onClick={handleLeaveRoom}
+                >
+                  <span className="text-xs">Change Channel</span>
+                </Button>
+              </div>
+            </div>
+
+            {/* Chat area - main content */}
+            <div className="col-span-1 lg:col-span-4">
+              <div className="lg:hidden flex justify-between items-center mb-4">
+                <h1 className="text-xl font-bold flex items-center gap-2">
+                  <span className="text-muted-foreground">#</span>
+                  {showCustomRoom ? customRoom : room}
+                </h1>
+                <Button variant="outline" onClick={handleLeaveRoom}>
+                  Change Channel
+                </Button>
+              </div>
+              <ChatRoom
+                username={username}
+                room={showCustomRoom ? customRoom : room}
+              />
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="private" className="mt-0">
@@ -291,7 +386,7 @@ export default function ChatPage() {
           ) : (
             <Card>
               <CardHeader>
-                <CardTitle>Private Messages</CardTitle>
+                <CardTitle>Direct Messages</CardTitle>
                 <CardDescription>
                   Select a user to start a private conversation
                 </CardDescription>

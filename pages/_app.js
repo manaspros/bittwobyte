@@ -1,12 +1,13 @@
-import { Auth0Provider } from '@auth0/auth0-react';
-import { auth0Config } from '../auth0-config';
-import { useEffect, useState } from 'react';
-// ...existing code...
+import { Auth0Provider } from "@auth0/auth0-react";
+import { auth0Config } from "../auth0-config";
+import { useEffect, useState } from "react";
+import React from "react";
 
+// Default export is required for Next.js pages
 function MyApp({ Component, pageProps }) {
   // Use a state variable to track if we're on the client
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -29,7 +30,7 @@ function MyApp({ Component, pageProps }) {
         </Auth0Provider>
       );
     }
-    
+
     // During initial SSR or before hydration, render without Auth0
     // Use a wrapper div with the same structure to prevent layout shifts
     return <Component {...pageProps} />;
@@ -38,4 +39,5 @@ function MyApp({ Component, pageProps }) {
   return <AppContent />;
 }
 
-// ...existing code...
+// Make sure to export the component as default
+export default MyApp;
