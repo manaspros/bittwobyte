@@ -1,43 +1,120 @@
 "use client";
 
-import { Auth0Provider } from "@auth0/auth0-react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 import { useRouter } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
 
-interface AuthProviderProps {
-  children: ReactNode;
+// Define the user type
+interface AuthUser {
+  sub: string; // Auth0 user ID
+  name?: string;
+  email?: string;
+  picture?: string;
 }
 
-export function AuthProvider({ children }: AuthProviderProps) {
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
+// Define the auth context shape
+interface AuthContextType {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  user: AuthUser | null;
+  login: () => void;
+  logout: () => void;
+}
 
+// Create the auth context
+const AuthContext = createContext<AuthContextType>({
+  isAuthenticated: false,
+  isLoading: true,
+  user: null,
+  login: () => {},
+  logout: () => {},
+});
+
+// Export the useAuth hook
+export const useAuth = () => useContext(AuthContext);
+
+// Create the auth provider component
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const router = useRouter();
+
+  // Simulate checking auth status on mount
   useEffect(() => {
-    setMounted(true);
+    const checkAuthStatus = () => {
+      // Check if there's a user in localStorage
+      const storedUser = localStorage.getItem("auth_user");
+
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          setIsAuthenticated(true);
+        } catch (e) {
+          // Invalid stored user, clear it
+          localStorage.removeItem("auth_user");
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      }
+
+      setIsLoading(false);
+    };
+
+    checkAuthStatus();
   }, []);
 
-  const onRedirectCallback = (appState: any) => {
-    // Use Next.js router to redirect after login
-    router.push(appState?.returnTo || "/");
+  // Mock login function
+  const login = () => {
+    // Create a mock user
+    const mockUser: AuthUser = {
+      sub: `user_${Math.random().toString(36).substring(2, 15)}`, // Generate random ID
+      name: "Demo User",
+      email: "demo@example.com",
+      picture: "https://via.placeholder.com/150",
+    };
+
+    // Store the user in localStorage
+    localStorage.setItem("auth_user", JSON.stringify(mockUser));
+
+    // Update state
+    setUser(mockUser);
+    setIsAuthenticated(true);
+
+    // Redirect to feed or username setup
+    router.push("/feed");
   };
 
-  // Only render auth-related content on the client
-  if (!mounted) {
-    // Return children without auth wrapper for SSR
-    return <>{children}</>;
-  }
+  // Mock logout function
+  const logout = () => {
+    // Remove user from localStorage
+    localStorage.removeItem("auth_user");
 
-  // Client-side rendering with auth context
+    // Update state
+    setUser(null);
+    setIsAuthenticated(false);
+
+    // Redirect to home
+    router.push("/");
+  };
+
   return (
-    <Auth0Provider
-      domain={process.env.NEXT_PUBLIC_AUTH0_DOMAIN || ""}
-      clientId={process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID || ""}
-      authorizationParams={{
-        redirect_uri: window.location.origin,
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        isLoading,
+        user,
+        login,
+        logout,
       }}
-      onRedirectCallback={onRedirectCallback}
     >
       {children}
-    </Auth0Provider>
+    </AuthContext.Provider>
   );
 }

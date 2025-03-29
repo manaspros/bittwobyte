@@ -1,27 +1,48 @@
-"use client"
+"use client";
 
-import HeroGeometric from "../components/kokonutui/hero-geometric"
-import { AuthButtons } from "@/components/auth/auth-buttons"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { useAuth } from "@/components/auth/auth-provider";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-export default function SyntheticV0PageForDeployment() {
+export default function Home() {
+  const { isAuthenticated, login, logout } = useAuth();
+
   return (
-    <div className="container mx-auto py-4">
-      <div className="flex justify-end mb-4">
-        <AuthButtons />
-      </div>
-      
-      <HeroGeometric />
-      
-      <div className="flex gap-4 justify-center mt-6">
-        <Link href="/protected">
-          <Button>Protected Page</Button>
-        </Link>
-        <Link href="/profile">
-          <Button variant="outline">Your Profile</Button>
-        </Link>
+    <div className="flex flex-col items-center justify-center min-h-screen p-4">
+      <div className="max-w-md w-full space-y-8 text-center">
+        <h1 className="text-4xl font-bold">Welcome to Bit2Byte</h1>
+        <p className="text-lg text-muted-foreground">
+          A real-time chat application built with Next.js and Socket.io
+        </p>
+
+        <div className="flex flex-col space-y-4 pt-4">
+          {isAuthenticated ? (
+            <>
+              <Link href="/feed">
+                <Button className="w-full" size="lg">
+                  Go to Feed
+                </Button>
+              </Link>
+              <Link href="/chat">
+                <Button className="w-full" variant="outline" size="lg">
+                  Public Chat Rooms
+                </Button>
+              </Link>
+              <Button
+                onClick={() => logout()}
+                variant="ghost"
+                className="w-full"
+              >
+                Logout
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => login()} className="w-full" size="lg">
+              Login to Get Started
+            </Button>
+          )}
+        </div>
       </div>
     </div>
-  )
+  );
 }
