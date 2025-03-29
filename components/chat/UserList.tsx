@@ -25,6 +25,11 @@ interface UserListProps {
 }
 
 export function UserList({ users, onSelectUser }: UserListProps) {
+  // Deduplicate users by ID
+  const uniqueUsers = Array.from(
+    new Map(users.map((user) => [user.id, user])).values()
+  );
+
   const getInitials = (name: string) => {
     return name.charAt(0).toUpperCase();
   };
@@ -34,17 +39,17 @@ export function UserList({ users, onSelectUser }: UserListProps) {
     return formatDistanceToNow(new Date(date), { addSuffix: true });
   };
 
-  if (users.length === 0) {
+  if (uniqueUsers.length === 0) {
     return (
       <div className="text-center py-6 text-muted-foreground">
-        No users are currently online
+        No users available
       </div>
     );
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {users.map((user) => (
+      {uniqueUsers.map((user) => (
         <div
           key={user.id}
           className="flex items-center justify-between p-4 rounded-md border bg-background hover:bg-accent/10 transition-colors"

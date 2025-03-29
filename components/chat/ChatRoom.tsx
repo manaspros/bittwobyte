@@ -376,8 +376,14 @@ export function ChatRoom({
         }
       >
         {!isPrivate && (
-          <div className="mb-4">
-            <h2 className="text-xl font-bold">Chat Room: {room}</h2>
+          <div className="mb-4 flex items-center gap-2">
+            <span className="text-xl font-bold flex items-center gap-2">
+              <span className="text-muted-foreground">#</span>
+              {room}
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {users.length} {users.length === 1 ? "member" : "members"}
+            </span>
           </div>
         )}
 
