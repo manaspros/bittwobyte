@@ -9,15 +9,5 @@ AUTH0_ISSUER_BASE_URL=https://dev-kb5tbifrd145c4lz.us.auth0.com
 AUTH0_AUDIENCE=
 AUTH0_SCOPE=openid profile email
 
-
-# Agora Configuration
-AGORA_APP_ID=db305fe72cb64892b1f907b01c9382dd
-AGORA_APP_CERTIFICATE=72c3360903cd460d95deffd6015d788a
-AGORA_PRIMARY_CERTIFICATE=72c3360903cd460d95deffd6015d788a
-
-# Server Configuration
-PORT=5000
-=======
 # Backend API URL
 NEXT_PUBLIC_BACKEND_URL=http://localhost:5000
-
