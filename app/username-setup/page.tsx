@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,12 @@ export default function UsernameSetupPage() {
   const [username, setUsername] = useState("");
   const { setUsername: saveUsername } = useUser();
   const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  // Set client-side flag on mount
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,6 +33,29 @@ export default function UsernameSetupPage() {
       router.push("/feed");
     }
   };
+
+  // Show a skeleton UI during SSR
+  if (!isClient) {
+    return (
+      <div className="container flex justify-center items-center min-h-[calc(100vh-80px)]">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <div className="h-7 w-3/4 bg-gray-200 rounded animate-pulse mb-2"></div>
+            <div className="h-5 w-full bg-gray-100 rounded animate-pulse"></div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <div className="h-5 w-20 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 w-full bg-gray-100 rounded animate-pulse"></div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <div className="h-10 w-full bg-gray-200 rounded animate-pulse"></div>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container flex justify-center items-center min-h-[calc(100vh-80px)]">

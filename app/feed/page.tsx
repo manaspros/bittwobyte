@@ -27,16 +27,24 @@ export default function FeedPage() {
   const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
 
+  // Add a client-side state flag to handle hydration
+  const [isClient, setIsClient] = useState(false);
+
   const [onlineUsers, setOnlineUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [activeRoom, setActiveRoom] = useState<string | null>(null);
 
+  // Set client state on mount
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   // Redirect if not authenticated
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!isLoading && !isAuthenticated && isClient) {
       router.push("/");
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, isClient]);
 
   // Listen for user list updates
   useEffect(() => {
@@ -74,6 +82,23 @@ export default function FeedPage() {
     setSelectedUser(null);
     setActiveRoom(null);
   };
+
+  // Prevent rendering authentication-dependent UI during SSR
+  if (!isClient) {
+    return (
+      <div className="container py-8 text-center">
+        <div className="h-8 w-48 bg-gray-200 mx-auto rounded animate-pulse mb-8"></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-20 bg-gray-100 rounded animate-pulse"
+            ></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   // Show loading state while checking auth or if user not loaded yet
   if (isLoading || !user) {

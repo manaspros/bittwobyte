@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ChatRoom } from "@/components/chat/ChatRoom";
-import { SocketProvider } from "@/context/SocketContext";
 
 export default function ChatPage() {
   const [username, setUsername] = useState("");
@@ -118,20 +117,15 @@ export default function ChatPage() {
   }
 
   return (
-    <SocketProvider>
-      <div className="container py-4">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Welcome, {username}</h1>
-          <Button variant="outline" onClick={() => setJoined(false)}>
-            Leave Room
-          </Button>
-        </div>
-
-        <ChatRoom
-          username={username}
-          room={showCustomRoom ? customRoom : room}
-        />
+    <div className="container py-4">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Welcome, {username}</h1>
+        <Button variant="outline" onClick={() => setJoined(false)}>
+          Leave Room
+        </Button>
       </div>
-    </SocketProvider>
+
+      <ChatRoom username={username} room={showCustomRoom ? customRoom : room} />
+    </div>
   );
 }

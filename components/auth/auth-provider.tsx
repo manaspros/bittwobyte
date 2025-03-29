@@ -47,6 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Simulate checking auth status on mount
   useEffect(() => {
+    // Make sure this only runs on the client
+    if (typeof window === "undefined") return;
+
     const checkAuthStatus = () => {
       // Check if there's a user in localStorage
       const storedUser = localStorage.getItem("auth_user");
@@ -72,9 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Mock login function
   const login = () => {
-    // Create a mock user
+    // Create a mock user with a stable ID
     const mockUser: AuthUser = {
-      sub: `user_${Math.random().toString(36).substring(2, 15)}`, // Generate random ID
+      sub: `user_${Math.floor(Date.now() / 1000)}`, // Use a timestamp for stability
       name: "Demo User",
       email: "demo@example.com",
       picture: "https://via.placeholder.com/150",

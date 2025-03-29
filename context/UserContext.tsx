@@ -36,8 +36,11 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<User | null>(null);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
 
-  // Check if user has a username in localStorage
+  // Check if user has a username in localStorage - client-side only
   useEffect(() => {
+    // Skip on server
+    if (typeof window === "undefined") return;
+
     if (isAuthenticated && authUser) {
       const savedUsername = localStorage.getItem(`username_${authUser.sub}`);
 

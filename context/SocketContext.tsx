@@ -21,7 +21,11 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
+  // Initialize socket only on client side
   useEffect(() => {
+    // Ensure this code only runs in the browser
+    if (typeof window === "undefined") return;
+
     // Initialize socket connection
     const socketInstance = io(
       process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"
