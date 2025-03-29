@@ -92,3 +92,27 @@ body {
     @apply bg-background text-foreground;
   }
 }
+/* styles/globals.css */
+.video-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.local-video {
+  width: 300px;
+  height: 200px;
+  border: 2px solid blue;
+}
+
+.remote-video {
+  width: 300px;
+  height: 200px;
+  border: 2px solid red;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

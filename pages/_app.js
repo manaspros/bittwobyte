@@ -1,6 +1,8 @@
 import { Auth0Provider } from '@auth0/auth0-react';
 import { auth0Config } from '../auth0-config';
 import { useEffect, useState } from 'react';
+import VideoCall from '../components/VideoCallComponent';
+import AgoraWrapper from '../components/AgoraWrapper';
 // ...existing code...
 
 function MyApp({ Component, pageProps }) {
@@ -24,7 +26,8 @@ function MyApp({ Component, pageProps }) {
             scope: auth0Config.scope,
           }}
           cacheLocation="localstorage"
-        >
+        ><h1>Video Chat</h1>
+         <AgoraWrapper/>
           <Component {...pageProps} />
         </Auth0Provider>
       );
