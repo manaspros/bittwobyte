@@ -391,11 +391,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
           router.push("/username-setup");
         }
       } else if (user) {
-        // User has a username, send to chat instead of feed
-        if (currentPath === "/" || currentPath === "/username-setup") {
-          console.log("Redirecting to chat");
+        // Only redirect from username setup page if user has a username
+        if (currentPath === "/username-setup") {
+          console.log("Redirecting from username setup to chat");
           router.push("/chat");
         }
+        // Remove redirect from main page to chat
       }
     }
   }, [

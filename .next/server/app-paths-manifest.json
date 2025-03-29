@@ -1,3 +1,8 @@
 {
-  "/api/users/route": "app/api/users/route.js"
+  "/api/agora-token/route": "app/api/agora-token/route.js",
+  "/api/users/route": "app/api/users/route.js",
+  "/chat/page": "app/chat/page.js",
+  "/page": "app/page.js",
+  "/username-setup/page": "app/username-setup/page.js",
+  "/video-call/page": "app/video-call/page.js"
 }

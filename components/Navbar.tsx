@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sheet";
 
 export function Navbar() {
-  const { isAuthenticated, logout, user: authUser } = useAuth();
+  const { isAuthenticated, logout, login, user: authUser } = useAuth();
   const { user } = useUser();
   const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
@@ -88,9 +88,7 @@ export function Navbar() {
               Logout
             </Button>
           ) : (
-            <Link href="/">
-              <Button>Login</Button>
-            </Link>
+            <Button onClick={() => login()}>Login</Button>
           )}
         </div>
       </div>
