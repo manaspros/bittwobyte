@@ -3,23 +3,20 @@
     "/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--0ecd0a.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_socket_io-client_build_esm_index_js.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_clsx_dist_clsx_mjs-_app-pages-browser_node_modules_ta-88558d.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-dialog_dist_index_mjs-_app-pages-brows-9a6c8f.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--ecc38c.js",
       "static/chunks/vendors-_app-pages-browser_node_modules_lucide-react_dist_esm_icons_bug_js-_app-pages-browser-28949d.js",
-      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
+      "static/chunks/_app-pages-browser_components_ui_button_tsx-_app-pages-browser_context_UserContext_tsx.js",
       "static/css/app/layout.css",
       "static/chunks/app/layout.js"
     ],
-    "/page": [
+    "/chat/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--0ecd0a.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_clsx_dist_clsx_mjs-_app-pages-browser_node_modules_ta-88558d.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_next_font_google_target_css_path_components_hero_Hero-cd7552.js",
-      "static/css/app/page.css",
-      "static/chunks/app/page.js"
+      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--ecc38c.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_lucide-react_dist_esm_icons_monitor-up_js-_app-pages--d04d92.js",
+      "static/chunks/_app-pages-browser_components_ui_button_tsx-_app-pages-browser_context_UserContext_tsx.js",
+      "static/chunks/_app-pages-browser_components_ui_avatar_tsx-_app-pages-browser_components_ui_card_tsx-_app-pa-d05974.js",
+      "static/chunks/app/chat/page.js"
     ],
     "/api/users/route": [
       "static/chunks/webpack.js",
@@ -29,48 +26,10 @@
     "/username-setup/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--0ecd0a.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_socket_io-client_build_esm_index_js.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_clsx_dist_clsx_mjs-_app-pages-browser_node_modules_ta-88558d.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-dialog_dist_index_mjs-_app-pages-brows-9a6c8f.js",
-      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
-      "static/chunks/_app-pages-browser_components_ui_avatar_tsx-_app-pages-browser_components_ui_button_tsx-_app--699f96.js",
+      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--ecc38c.js",
+      "static/chunks/_app-pages-browser_components_ui_button_tsx-_app-pages-browser_context_UserContext_tsx.js",
+      "static/chunks/_app-pages-browser_components_ui_avatar_tsx-_app-pages-browser_components_ui_card_tsx-_app-pa-d05974.js",
       "static/chunks/app/username-setup/page.js"
-    ],
-    "/chat/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--0ecd0a.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_socket_io-client_build_esm_index_js.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_clsx_dist_clsx_mjs-_app-pages-browser_node_modules_ta-88558d.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_radix-ui_react-dialog_dist_index_mjs-_app-pages-brows-9a6c8f.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_lucide-react_dist_esm_icons_monitor-up_js-_app-pages--d04d92.js",
-      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
-      "static/chunks/_app-pages-browser_components_ui_avatar_tsx-_app-pages-browser_components_ui_button_tsx-_app--699f96.js",
-      "static/chunks/app/chat/page.js"
-    ],
-    "/video-call/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--0ecd0a.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_socket_io-client_build_esm_index_js.js",
-      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
-      "static/chunks/app/video-call/layout.js"
-    ],
-    "/video-call/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_auth0_auth0-react_dist_auth0-react_esm_js-_app-pages--0ecd0a.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_socket_io-client_build_esm_index_js.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_clsx_dist_clsx_mjs-_app-pages-browser_node_modules_ta-88558d.js",
-      "static/chunks/vendors-_app-pages-browser_node_modules_agora-access-token_index_js-_app-pages-browser_node_m-12f9b8.js",
-      "static/chunks/_app-pages-browser_context_UserContext_tsx.js",
-      "static/chunks/app/video-call/page.js"
-    ],
-    "/api/agora-token/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/agora-token/route.js"
     ]
   }
 }
